@@ -169,7 +169,7 @@ async def addfilter(client, message):
     )
 
 
-@Client.on_message(filters.command('tüm') & filters.user(Config.OWNERS))
+@Client.on_message(filters.command('tum') & filters.user(Config.OWNERS))
 async def get_all(client, message):
     
     chat_type = message.chat.type
