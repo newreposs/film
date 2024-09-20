@@ -66,7 +66,7 @@ class Config:
     KANAL = int(os.environ.get("KANAL", "-1001825274905"))
     SESSION_NAME = os.environ.get("SESSION_NAME", "dizi")
     DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://hplatformss:hplatformss@cluster0.chcsk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-    AUTH_CHANNEL = int(os.environ.get("AUTH_CHANNEL", "-1001905375299"))
+    AUTH_CHANNEL = os.environ.get("AUTH_CHANNEL", "dublajflix_arsiv")
     OWNERS = list(set(x for x in os.environ.get("OWNERS", "ahmet118").split()))
     BOT_USERNAME = os.environ.get("BOT_USERNAME", "diziadmin")
     BROADCAST_AS_COPY = bool(os.environ.get("BROADCAST_AS_COPY", True))
