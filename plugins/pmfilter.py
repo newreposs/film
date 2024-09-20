@@ -239,7 +239,9 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
 
-@Client.on_message((filters.private | filters.group) & filters.text)
+import asyncio
+
+@Client.on_message((filters.private | filters.group & filters.text)
 async def give_filter(client, message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
@@ -293,7 +295,7 @@ async def give_filter(client, message):
                             )
 
                     # Uyarı mesajı gönder
-                    warning_message = await message.reply_text("Bu mesaj 15 dakika sonra silinecektir.")
+                    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
 
                 except Exception as e:
                     print(e)
@@ -311,10 +313,13 @@ async def give_filter(client, message):
         except:
             pass
 
-    # Eğer mesaj grup içinde gönderildiyse, 15 dakika sonra mesajları sil
+    # Eğer mesaj belirtilen grup içinde gönderildiyse, 15 dakika sonra mesajları sil
     if message.chat.type == "group" or message.chat.type == "supergroup":
-        await asyncio.sleep(900)  # 15 dakika bekle
-        if message_to_delete:  # Eğer gönderilen filtre mesajı varsa
-            await client.delete_messages(message.chat.id, message_to_delete.message_id)
-        if warning_message:  # Eğer uyarı mesajı varsa
-            await client.delete_messages(message.chat.id, warning_message.message_id)
+        await asyncio.sleep(1)  # 15 dakika bekle
+        try:
+            if message_to_delete:  # Eğer gönderilen filtre mesajı varsa
+                await client.delete_messages(message.chat.id, message_to_delete.message_id)
+            if warning_message:  # Eğer uyarı mesajı varsa
+                await client.delete_messages(message.chat.id, warning_message.message_id)
+        except Exception as e:
+            print(f"Mesaj silme hatası: {e}")
