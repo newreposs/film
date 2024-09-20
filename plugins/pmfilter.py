@@ -239,7 +239,7 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
 
-@Client.on_message((filters.private | filters.chat(Config.CHANNEL)) & filters.text)
+@Client.on_message((filters.private | filters.group) & filters.text)
 async def give_filter(client, message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
@@ -265,35 +265,37 @@ async def give_filter(client, message):
                 # Filtre mesajını gönder
                 if fileid == "None":
                     if btn == "[]":
-                        message_to_delete = await message.reply_text(reply_text, disable_web_page_preview=True)
-                        print(f"Filtre mesajı gönderildi: {message_to_delete.message_id}")
+                        sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
                     else:
                         button = eval(btn)
-                        message_to_delete = await message.reply_text(
+                        sent_message = await message.reply_text(
                             reply_text,
                             disable_web_page_preview=True,
                             reply_markup=InlineKeyboardMarkup(button)
                         )
-                        print(f"Filtre mesajı gönderildi: {message_to_delete.message_id}")
                 else:
                     if btn == "[]":
-                        message_to_delete = await message.reply_cached_media(
+                        sent_message = await message.reply_cached_media(
                             fileid,
                             caption=reply_text or ""
                         )
-                        print(f"Medya mesajı gönderildi: {message_to_delete.message_id}")
                     else:
                         button = eval(btn)
-                        message_to_delete = await message.reply_cached_media(
+                        sent_message = await message.reply_cached_media(
                             fileid,
                             caption=reply_text or "",
                             reply_markup=InlineKeyboardMarkup(button)
                         )
-                        print(f"Medya mesajı gönderildi: {message_to_delete.message_id}")
+
+                # Mesaj başarılı şekilde gönderildiyse, message_id kontrolü yap
+                if hasattr(sent_message, 'message_id'):
+                    message_to_delete = sent_message
+                    print(f"Filtre mesajı gönderildi: {message_to_delete.message_id}")
                 
                 # Uyarı mesajı gönder
                 warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-                print(f"Uyarı mesajı gönderildi: {warning_message.message_id}")
+                if hasattr(warning_message, 'message_id'):
+                    print(f"Uyarı mesajı gönderildi: {warning_message.message_id}")
             
             except Exception as e:
                 print(f"Mesaj gönderme hatası: {e}")
