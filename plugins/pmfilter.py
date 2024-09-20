@@ -239,7 +239,7 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
 
-@Client.on_message(filters.private & filters.text)
+@Client.on_message((filters.private | filters.group) & filters.text)
 async def give_filter(client,message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
