@@ -239,9 +239,7 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
 
-import asyncio
-
-@Client.on_message((filters.private | filters.group & filters.text)
+@Client.on_message((filters.private | filters.chat(Config.CHANNEL)) & filters.text)
 async def give_filter(client, message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
@@ -263,44 +261,44 @@ async def give_filter(client, message):
             message_to_delete = None  # Filtre mesajını silmek için referans
             warning_message = None   # Uyarı mesajını silmek için referans
 
-            if btn is not None:
-                try:
-                    if fileid == "None":
-                        if btn == "[]":
-                            message_to_delete = await message.reply_text(reply_text, disable_web_page_preview=True)
-                            await client.copy_message(
-                                chat_id=message.chat.id,
-                                from_chat_id=Config.KANAL,
-                                message_id=int(reply_text)
-                            )
-                        else:
-                            button = eval(btn)
-                            message_to_delete = await message.reply_text(
-                                reply_text,
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(button)
-                            )
+            try:
+                # Filtre mesajını gönder
+                if fileid == "None":
+                    if btn == "[]":
+                        message_to_delete = await message.reply_text(reply_text, disable_web_page_preview=True)
+                        print(f"Filtre mesajı gönderildi: {message_to_delete.message_id}")
                     else:
-                        if btn == "[]":
-                            message_to_delete = await message.reply_cached_media(
-                                fileid,
-                                caption=reply_text or ""
-                            )
-                        else:
-                            button = eval(btn) 
-                            message_to_delete = await message.reply_cached_media(
-                                fileid,
-                                caption=reply_text or "",
-                                reply_markup=InlineKeyboardMarkup(button)
-                            )
-
-                    # Uyarı mesajı gönder
-                    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-
-                except Exception as e:
-                    print(e)
-                    pass
-                break 
+                        button = eval(btn)
+                        message_to_delete = await message.reply_text(
+                            reply_text,
+                            disable_web_page_preview=True,
+                            reply_markup=InlineKeyboardMarkup(button)
+                        )
+                        print(f"Filtre mesajı gönderildi: {message_to_delete.message_id}")
+                else:
+                    if btn == "[]":
+                        message_to_delete = await message.reply_cached_media(
+                            fileid,
+                            caption=reply_text or ""
+                        )
+                        print(f"Medya mesajı gönderildi: {message_to_delete.message_id}")
+                    else:
+                        button = eval(btn)
+                        message_to_delete = await message.reply_cached_media(
+                            fileid,
+                            caption=reply_text or "",
+                            reply_markup=InlineKeyboardMarkup(button)
+                        )
+                        print(f"Medya mesajı gönderildi: {message_to_delete.message_id}")
+                
+                # Uyarı mesajı gönder
+                warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
+                print(f"Uyarı mesajı gönderildi: {warning_message.message_id}")
+            
+            except Exception as e:
+                print(f"Mesaj gönderme hatası: {e}")
+                pass
+            break 
                 
     if Config.SAVE_USER == "yes":
         try:
@@ -313,13 +311,15 @@ async def give_filter(client, message):
         except:
             pass
 
-    # Eğer mesaj belirtilen grup içinde gönderildiyse, 15 dakika sonra mesajları sil
+    # Eğer mesaj belirtilen grup içinde gönderildiyse, 1 dakika sonra mesajları sil
     if message.chat.type == "group" or message.chat.type == "supergroup":
-        await asyncio.sleep(1)  # 15 dakika bekle
+        await asyncio.sleep(60)  # 1 dakika bekle
         try:
             if message_to_delete:  # Eğer gönderilen filtre mesajı varsa
                 await client.delete_messages(message.chat.id, message_to_delete.message_id)
+                print(f"Filtre mesajı silindi: {message_to_delete.message_id}")
             if warning_message:  # Eğer uyarı mesajı varsa
                 await client.delete_messages(message.chat.id, warning_message.message_id)
+                print(f"Uyarı mesajı silindi: {warning_message.message_id}")
         except Exception as e:
             print(f"Mesaj silme hatası: {e}")
