@@ -63,7 +63,7 @@ class Config:
     STRING_SESSION = os.environ.get("STRING_SESSION", "BABG6QqW9xboAa4qBTWTA-npQbsWTaLW7KtjMPxL2dCFxrXRjbt-BSedqTnphI6aqj4Qij8t6ovf17iVsH0YeF5FO6NS_nnTHgi7YpI3YvkQOji5BS-IrO74IisC2t_Oh8O-wX8WK0r-JCRyjD2PdHrt_w1GkAO0SgCZHWFhwe0HbEtTwSIjCQFd_0gZ1su_IOGDis2FSOGXizLvqsQMbF6O9Z-PzZUuXoJKJcx3VhCf5LxLtzwNebKsBK8xuD_hrBqzK1ATTinshtVdnaU1coT6ObglKp6xG0BQwFcb90qmItpjAXUkaGYxfWGvlbAktRuiJVL7vm05GC4mFXwFvYDJAAAAAVOc0UkA")
     OWNER_ID = os.environ.get("OWNER_ID", 'ahmet118') 
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", "-1001825274905"))
-    KANAL = int(os.environ.get("KANAL", "-1001825274905"))
+    KANAL = os.environ.get("KANAL", "xyzsjypi")
     SESSION_NAME = os.environ.get("SESSION_NAME", "dizi")
     DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://hplatformss:hplatformss@cluster0.chcsk.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
     AUTH_CHANNEL = os.environ.get("AUTH_CHANNEL", "dublajflix_arsiv")
