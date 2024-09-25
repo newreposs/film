@@ -295,10 +295,11 @@ async def give_filter(client, message):
                     # Mesajları 1 dakika sonra silme işlemi
                     await asyncio.sleep(60)
                     try:
+                        # Mesajları sil
                         if sent_message:
-                            await sent_message.delete()  # Gönderilen mesajı sil
+                            await client.delete_messages(message.chat.id, [sent_message.id])  # Gönderilen mesajı sil
                         if warning_message:
-                            await warning_message.delete()  # Uyarı mesajını sil
+                            await client.delete_messages(message.chat.id, [warning_message.id])  # Uyarı mesajını sil
                     except Exception as e:
                         print(f"Mesaj silme hatası: {e}")
             
