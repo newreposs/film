@@ -239,77 +239,69 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
 
-import asyncio
-from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup
-
-@Client.on_message(filters.text)
+@Client.on_message((filters.private | filters.group) & filters.text)
 async def give_filter(client, message):
-    # Özelden gelen mesajlara yanıt ver
-    if message.chat.type == "private":
-        await message.reply_text("Özel mesajınızı aldım, işlem yapılıyor.")
-        return  # Özel mesaj için işlem tamamlandı
+    if Config.AUTH_CHANNEL:
+        fsub = await handle_force_subscribe(client, message)
+        if fsub == 400:
+            return
+    group_id = Config.BOT_USERNAME
+    name = message.text
 
-    # Gruptan gelen mesajları kontrol et
-    if message.chat.type in ["group", "supergroup"]:
-        if Config.AUTH_CHANNEL:
-            fsub = await handle_force_subscribe(client, message)
-            if fsub == 400:
-                return
+    keywords = await get_filters(group_id)
+    for keyword in reversed(sorted(keywords, key=len)):
+        pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
+        if re.search(pattern, name, flags=re.IGNORECASE):
+            reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
 
-        name = message.text
-        group_id = Config.BOT_USERNAME  # Eğer gerekiyorsa grup ID'si kullanılabilir
+            if reply_text:
+                reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
-        keywords = await get_filters(group_id)
-        for keyword in reversed(sorted(keywords, key=len)):
-            pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
-            if re.search(pattern, name, flags=re.IGNORECASE):
-                reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+            # Uyarı mesajını gönder
+            warning_message = await message.reply_text(
+                "Bu mesaj 1 dakika içinde silinecektir."
+            )
 
-                if reply_text:
-                    reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
-
+            if btn is not None:
                 try:
-                    # Mesajı gönderiyoruz ve sonuç nesnesini saklıyoruz
                     if fileid == "None":
                         if btn == "[]":
-                            sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
+                            await message.reply_text(reply_text, disable_web_page_preview=True)
+                            await client.copy_message(
+                                chat_id=message.chat.id,
+                                from_chat_id=Config.KANAL,
+                                message_id=int(reply_text))
                         else:
                             button = eval(btn)
-                            sent_message = await message.reply_text(
+                            await message.reply_text(
                                 reply_text,
                                 disable_web_page_preview=True,
                                 reply_markup=InlineKeyboardMarkup(button)
                             )
                     else:
                         if btn == "[]":
-                            sent_message = await message.reply_cached_media(
+                            await message.reply_cached_media(
                                 fileid,
                                 caption=reply_text or ""
                             )
                         else:
                             button = eval(btn)
-                            sent_message = await message.reply_cached_media(
+                            await message.reply_cached_media(
                                 fileid,
                                 caption=reply_text or "",
                                 reply_markup=InlineKeyboardMarkup(button)
                             )
-
-                    # Uyarı mesajını gönder
-                    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-                    
-                    # Mesajları 1 dakika sonra silme işlemi
-                    await asyncio.sleep(60)
-                    try:
-                        # Gönderilen mesajı ve uyarı mesajını sil
-                        await client.delete_messages(message.chat.id, [sent_message.id, warning_message.id])
-                    except Exception as e:
-                        print(f"Mesaj silme hatası: {e}")
-
                 except Exception as e:
-                    print(f"Mesaj gönderme hatası: {e}")
-                break  # Anahtar kelime bulunduğunda döngüden çık
+                    print(e)
+                    pass
 
+                # Mesajı 1 dakika sonra sil
+                await asyncio.sleep(60)  # 1 dakika bekle
+                await message.delete()  # Kendi mesajını sil
+                await warning_message.delete()  # Uyarı mesajını sil
+
+                break 
+                
     if Config.SAVE_USER == "yes":
         try:
             await add_user(
@@ -319,4 +311,4 @@ async def give_filter(client, message):
                 str(message.from_user.dc_id)
             )
         except Exception as e:
-            print(f"Kullanıcı ekleme hatası: {e}")
+            print(e)
