@@ -302,14 +302,16 @@ async def give_filter(client, message):
                     print("Mesaj gönderilemedi! `sent_message` None döndü.")
                 
                 # Uyarı mesajı gönder
-                warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-                if warning_message:
-                    if hasattr(warning_message, 'message_id'):
+                try:
+                    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
+                    
+                    if warning_message and hasattr(warning_message, 'message_id'):
                         print(f"Uyarı mesajı gönderildi ve ID: {warning_message.message_id}")
                     else:
-                        print(f"Uyarı mesajı gönderildi, ancak 'message_id' alınamadı.")
-                else:
-                    print("Uyarı mesajı gönderilemedi! `warning_message` None döndü.")
+                        print("Uyarı mesajı gönderildi ancak `message_id` alınamadı.")
+                
+                except Exception as e:
+                    print(f"Uyarı mesajı gönderme hatası: {e}")
             
             except Exception as e:
                 print(f"Mesaj gönderme hatası: {e}")
