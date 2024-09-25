@@ -240,6 +240,8 @@ async def delallconfirm(client, message):
     await del_all(client, message, group_id, title)
 
 
+import asyncio
+
 @Client.on_message((filters.private | filters.group) & filters.text)
 async def give_filter(client, message):
     if Config.AUTH_CHANNEL:
@@ -250,23 +252,17 @@ async def give_filter(client, message):
     group_id = Config.BOT_USERNAME
     name = message.text
 
-    # Filtre anahtar kelimelerini almak
     keywords = await get_filters(group_id)
     for keyword in reversed(sorted(keywords, key=len)):
-        # Anahtar kelimenin mesajda olup olmadığını kontrol etmek
         pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
         if re.search(pattern, name, flags=re.IGNORECASE):
-            # Anahtar kelime ile ilgili yanıtları almak
             reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
 
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
-            message_to_delete = None  # Filtre mesajını silmek için referans
-            warning_message = None   # Uyarı mesajını silmek için referans
-
             try:
-                # Filtre mesajını gönder
+                # Mesajı gönderiyoruz ve sonuç nesnesini saklıyoruz
                 if fileid == "None":
                     if btn == "[]":
                         sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
@@ -291,52 +287,19 @@ async def give_filter(client, message):
                             reply_markup=InlineKeyboardMarkup(button)
                         )
 
-                # Mesajın başarıyla gönderilip gönderilmediğini kontrol et
-                if sent_message:
-                    if hasattr(sent_message, 'message_id'):
-                        print(f"Filtre mesajı gönderildi ve ID: {sent_message.message_id}")
-                        message_to_delete = sent_message
-                    else:
-                        print(f"Mesaj gönderildi, ancak 'message_id' alınamadı. Mesaj objesi: {sent_message}")
-                else:
-                    print("Mesaj gönderilemedi! `sent_message` None döndü.")
-                
-                # Uyarı mesajı gönder
+                # Uyarı mesajını gönder
+                warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
+
+                # Mesajları 1 dakika sonra silme işlemi
+                await asyncio.sleep(60)
                 try:
-                    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-                    
-                    if warning_message and hasattr(warning_message, 'message_id'):
-                        print(f"Uyarı mesajı gönderildi ve ID: {warning_message.message_id}")
-                    else:
-                        print("Uyarı mesajı gönderildi ancak `message_id` alınamadı.")
-                
+                    if sent_message:
+                        await sent_message.delete()  # Gönderilen mesajı sil
+                    if warning_message:
+                        await warning_message.delete()  # Uyarı mesajını sil
                 except Exception as e:
-                    print(f"Uyarı mesajı gönderme hatası: {e}")
+                    print(f"Mesaj silme hatası: {e}")
             
             except Exception as e:
                 print(f"Mesaj gönderme hatası: {e}")
             break  # Anahtar kelime bulunduğunda döngüden çık
-
-    if Config.SAVE_USER == "yes":
-        try:
-            await add_user(
-                str(message.from_user.id),
-                str(message.from_user.username),
-                str(message.from_user.first_name + " " + (message.from_user.last_name or "")),
-                str(message.from_user.dc_id)
-            )
-        except Exception as e:
-            print(f"Kullanıcı ekleme hatası: {e}")
-
-    # Sadece grupta mesajları 1 dakika sonra sil
-    if message.chat.type == "group" or message.chat.type == "supergroup":
-        await asyncio.sleep(60)  # 1 dakika bekle
-        try:
-            if message_to_delete:  # Eğer gönderilen filtre mesajı varsa
-                await client.delete_messages(message.chat.id, message_to_delete.message_id)
-                print(f"Filtre mesajı silindi: {message_to_delete.message_id}")
-            if warning_message:  # Eğer uyarı mesajı varsa
-                await client.delete_messages(message.chat.id, warning_message.message_id)
-                print(f"Uyarı mesajı silindi: {warning_message.message_id}")
-        except Exception as e:
-            print(f"Mesaj silme hatası: {e}")
