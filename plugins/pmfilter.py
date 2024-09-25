@@ -2,6 +2,7 @@ import os
 import re
 import io
 import pyrogram
+import asyncio
 import logging
 from functions.forcesub import handle_force_subscribe
 
@@ -257,7 +258,11 @@ async def give_filter(client, message):
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
-            # Uyarı mesajını gönder
+            # Filtre mesajını gönder
+            await message.reply_text(reply_text, disable_web_page_preview=True)
+
+            # Uyarı mesajını 1 saniye bekledikten sonra gönder
+            await asyncio.sleep(1)  # 1 saniye bekle
             warning_message = await message.reply_text(
                 "Bu mesaj 1 dakika içinde silinecektir."
             )
