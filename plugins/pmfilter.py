@@ -239,7 +239,6 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
 
-
 import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup
@@ -293,7 +292,7 @@ async def give_filter(client, message):
                             reply_markup=InlineKeyboardMarkup(button)
                         )
 
-                # Uyarı mesajını gönder ve silme işlemini başlat
+                # Uyarı mesajını gönder
                 warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
                 
                 # Mesajları 1 dakika sonra silme işlemi
