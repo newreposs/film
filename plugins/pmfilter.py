@@ -287,19 +287,32 @@ async def give_filter(client, message):
                             reply_markup=InlineKeyboardMarkup(button)
                         )
 
-                # Uyarı mesajını gönder
-                warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-
-                # Mesajları 1 dakika sonra silme işlemi
-                await asyncio.sleep(60)
-                try:
-                    if sent_message:
-                        await sent_message.delete()  # Gönderilen mesajı sil
-                    if warning_message:
-                        await warning_message.delete()  # Uyarı mesajını sil
-                except Exception as e:
-                    print(f"Mesaj silme hatası: {e}")
+                # Eğer mesaj bir grupta ise uyarı mesajını gönder ve silme işlemini başlat
+                if message.chat.type in ["group", "supergroup"]:
+                    # Uyarı mesajını gönder
+                    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
+                    
+                    # Mesajları 1 dakika sonra silme işlemi
+                    await asyncio.sleep(60)
+                    try:
+                        if sent_message:
+                            await sent_message.delete()  # Gönderilen mesajı sil
+                        if warning_message:
+                            await warning_message.delete()  # Uyarı mesajını sil
+                    except Exception as e:
+                        print(f"Mesaj silme hatası: {e}")
             
             except Exception as e:
                 print(f"Mesaj gönderme hatası: {e}")
             break  # Anahtar kelime bulunduğunda döngüden çık
+
+    if Config.SAVE_USER == "yes":
+        try:
+            await add_user(
+                str(message.from_user.id),
+                str(message.from_user.username),
+                str(message.from_user.first_name + " " + (message.from_user.last_name or "")),
+                str(message.from_user.dc_id)
+            )
+        except Exception as e:
+            print(f"Kullanıcı ekleme hatası: {e}")
