@@ -246,8 +246,8 @@ from pyrogram.types import InlineKeyboardMarkup
 
 @Client.on_message(filters.text)
 async def give_filter(client, message):
-    # Sadece özelden gelen mesajları etkilememek için kontrol
-    if message.chat.type in ["private"]:
+    # Eğer mesaj özelden geldiyse, hiçbir işlem yapma
+    if message.chat.type == "private":
         return
 
     if Config.AUTH_CHANNEL:
