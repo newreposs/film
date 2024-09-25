@@ -241,16 +241,18 @@ async def delallconfirm(client, message):
 
 
 import asyncio
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup
 
-@Client.on_message((filters.private | filters.group) & filters.text)
+@Client.on_message(filters.private | filters.group & filters.text)
 async def give_filter(client, message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
         if fsub == 400:
             return
 
-    group_id = Config.BOT_USERNAME
     name = message.text
+    group_id = Config.BOT_USERNAME  # Eğer gerekiyorsa grup ID'si kullanılabilir
 
     keywords = await get_filters(group_id)
     for keyword in reversed(sorted(keywords, key=len)):
@@ -287,22 +289,17 @@ async def give_filter(client, message):
                             reply_markup=InlineKeyboardMarkup(button)
                         )
 
-                # Eğer mesaj bir grupta ise uyarı mesajını gönder ve silme işlemini başlat
-                if message.chat.type in ["group", "supergroup"]:
-                    # Uyarı mesajını gönder
-                    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-                    
-                    # Mesajları 1 dakika sonra silme işlemi
-                    await asyncio.sleep(60)
-                    try:
-                        # Mesajları sil
-                        if sent_message:
-                            await client.delete_messages(message.chat.id, [sent_message.id])  # Gönderilen mesajı sil
-                        if warning_message:
-                            await client.delete_messages(message.chat.id, [warning_message.id])  # Uyarı mesajını sil
-                    except Exception as e:
-                        print(f"Mesaj silme hatası: {e}")
-            
+                # Uyarı mesajını gönder ve silme işlemini başlat
+                warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
+                
+                # Mesajları 1 dakika sonra silme işlemi
+                await asyncio.sleep(60)
+                try:
+                    # Gönderilen mesajı ve uyarı mesajını sil
+                    await client.delete_messages(message.chat.id, [sent_message.id, warning_message.id])
+                except Exception as e:
+                    print(f"Mesaj silme hatası: {e}")
+
             except Exception as e:
                 print(f"Mesaj gönderme hatası: {e}")
             break  # Anahtar kelime bulunduğunda döngüden çık
