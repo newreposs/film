@@ -291,17 +291,25 @@ async def give_filter(client, message):
                             reply_markup=InlineKeyboardMarkup(button)
                         )
 
-                # Mesajın ID'sini kontrol et
-                if hasattr(sent_message, 'message_id'):
-                    print(f"Filtre mesajı gönderildi ve ID: {sent_message.message_id}")
-                    message_to_delete = sent_message
+                # Mesajın başarıyla gönderilip gönderilmediğini kontrol et
+                if sent_message:
+                    if hasattr(sent_message, 'message_id'):
+                        print(f"Filtre mesajı gönderildi ve ID: {sent_message.message_id}")
+                        message_to_delete = sent_message
+                    else:
+                        print(f"Mesaj gönderildi, ancak 'message_id' alınamadı. Mesaj objesi: {sent_message}")
                 else:
-                    print("Mesaj gönderildi ancak 'message_id' alınamadı.")
+                    print("Mesaj gönderilemedi! `sent_message` None döndü.")
                 
                 # Uyarı mesajı gönder
                 warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.")
-                if hasattr(warning_message, 'message_id'):
-                    print(f"Uyarı mesajı gönderildi ve ID: {warning_message.message_id}")
+                if warning_message:
+                    if hasattr(warning_message, 'message_id'):
+                        print(f"Uyarı mesajı gönderildi ve ID: {warning_message.message_id}")
+                    else:
+                        print(f"Uyarı mesajı gönderildi, ancak 'message_id' alınamadı.")
+                else:
+                    print("Uyarı mesajı gönderilemedi! `warning_message` None döndü.")
             
             except Exception as e:
                 print(f"Mesaj gönderme hatası: {e}")
