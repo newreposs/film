@@ -244,8 +244,12 @@ import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup
 
-@Client.on_message(filters.private | filters.group & filters.text)
+@Client.on_message(filters.text)
 async def give_filter(client, message):
+    # Sadece özelden gelen mesajları etkilememek için kontrol
+    if message.chat.type in ["private"]:
+        return
+
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
         if fsub == 400:
