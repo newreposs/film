@@ -261,19 +261,18 @@ async def give_filter(client, message):
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
             sent_message = None  # Gönderilen filtre yanıtı mesajını saklamak için
-            media_message_id = None  # KANAL'dan iletilen medya mesajının ID'sini saklamak için
 
             if btn is not None:
                 try:
                     if fileid == "None":
                         if btn == "[]":
-                            # KANAL'dan medyayı filtre yanıtı olarak gönder
+                            # KANAL'dan medyayı reply.message olarak gönder
                             media_message = await client.copy_message(
                                 chat_id=message.chat.id,
                                 from_chat_id=Config.KANAL,
                                 message_id=int(reply_text)
                             )
-                            media_message_id = media_message.id  # Medya mesajının ID'si
+                            # Yanıt olarak reply_text'i gönder
                             sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
                         else:
                             button = eval(btn)
@@ -321,10 +320,6 @@ async def give_filter(client, message):
     if sent_message:  # Eğer bir filtre yanıtı gönderilmişse
         await sent_message.delete()  # Filtre yanıtı mesajını sil
     await message.delete()  # Kullanıcının gönderdiği mesajı sil
-
-    # KANAL'dan iletilen medya mesajını sil
-    if media_message_id:  # Eğer medya mesajı gönderilmişse
-        await client.delete_messages(chat_id=message.chat.id, message_ids=media_message_id)
 
     # Uyarı mesajını sil
     await warning_message.delete()
