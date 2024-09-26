@@ -267,7 +267,7 @@ async def give_filter(client, message):
                     if fileid == "None":
                         if btn == "[]":
                             # KANAL'dan gelen mesajı al ve yanıt olarak gönder
-                            kanal_message = await client.get_messages(Config.KANAL, message_id=int(reply_text))
+                            kanal_message = await client.get_messages(Config.KANAL, ids=int(reply_text))
                             sent_message = await message.reply(
                                 text=kanal_message.text,  # Mesajın içeriğini gönder
                                 reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
