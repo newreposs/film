@@ -269,24 +269,32 @@ async def give_filter(client, message):
                     if fileid == "None":
                         # Burada reply_text sayının ID olduğunu varsayıyoruz
                         message_id = int(reply_text)  # KANAL'daki mesaj ID'si
+                        
                         # Filtrenin cevabını gönder
                         sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
-                        
-                        # Mesaj ID'si üzerinden bağlantı oluştur
-                        kanal_link = f't.me/{Config.KANAL}/{message_id}'
-                        print(f"Kanal Linki: {kanal_link}")  # Debug: Kanal linkini yazdır
                         
                         # Mesajı KANAL'dan al
                         kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
 
                         # Mesajın alınıp alınmadığını kontrol et
                         if kanal_message:
-                            # Mesajı gönder
-                            await message.reply(
-                                text=kanal_message.text,  # Mesajın içeriğini gönder
-                                reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
-                                disable_web_page_preview=True
-                            )
+                            # Eğer medya varsa, onu indir
+                            if kanal_message.media:
+                                # Medyayı indir ve yanıt olarak gönder
+                                media = await client.download_media(kanal_message)
+                                
+                                # Yanıt olarak medya gönder
+                                await message.reply_photo(
+                                    photo=media,
+                                    caption=kanal_message.caption or "",  # Mesajın içeriğini gönder
+                                    disable_web_page_preview=True
+                                )
+                            else:
+                                await message.reply(
+                                    text=kanal_message.text,  # Mesajın içeriğini gönder
+                                    reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
+                                    disable_web_page_preview=True
+                                )
                         else:
                             print("Mesaj alınamadı.")  # Debug: Mesaj alınamadı
                     else:
