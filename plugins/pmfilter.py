@@ -277,13 +277,14 @@ async def give_filter(client, message):
                         kanal_url = f'https://t.me/{Config.KANAL}/{message_id}'
                         print(f"Kanal URL: {kanal_url}")  # Debug: Kanal URL'sini yazdır
                         
-                        # Medyayı indir
+                        # Mesajı KANAL'dan al
                         kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
 
                         # Mesajın alınıp alınmadığını kontrol et
                         if kanal_message:
                             # Eğer medya varsa, onu indir
                             if kanal_message.media:
+                                # Medyayı indir ve yanıt olarak gönder
                                 media = await client.download_media(kanal_message)
                                 
                                 # Yanıt olarak medya gönder
@@ -293,9 +294,9 @@ async def give_filter(client, message):
                                     disable_web_page_preview=True
                                 )
                             else:
-                                await message.reply(
-                                    text=kanal_message.text,  # Mesajın içeriğini gönder
-                                    reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
+                                # Sadece metin mesajı varsa, onu gönder
+                                await message.reply_text(
+                                    kanal_message.text,  # Mesajın içeriğini gönder
                                     disable_web_page_preview=True
                                 )
                         else:
