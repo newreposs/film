@@ -260,6 +260,8 @@ async def give_filter(client, message):
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
+            sent_message = None  # Gönderilen filtre yanıtı mesajını saklamak için
+
             if btn is not None:
                 try:
                     if fileid == "None":
@@ -311,8 +313,10 @@ async def give_filter(client, message):
     # 1 dakika bekle
     await asyncio.sleep(60)
 
-    # Mesajı sil
-    await message.delete()
+    # Mesajı ve yanıtı sil
+    if sent_message:  # Eğer bir filtre yanıtı gönderilmişse
+        await sent_message.delete()  # Filtre yanıtı mesajını sil
+    await message.delete()  # Kullanıcının gönderdiği mesajı sil
     
     # Uyarı mesajını sil
     await warning_message.delete()
