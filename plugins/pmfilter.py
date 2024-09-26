@@ -241,6 +241,7 @@ async def delallconfirm(client, message):
     await del_all(client, message, group_id, title)
    
 import asyncio  # asyncio modülünü eklemeyi unutmayın
+import re
 
 @Client.on_message((filters.private | filters.group) & filters.text)
 async def give_filter(client, message):
@@ -248,6 +249,7 @@ async def give_filter(client, message):
         fsub = await handle_force_subscribe(client, message)
         if fsub == 400:
             return
+            
     group_id = Config.BOT_USERNAME
     name = message.text
 
@@ -266,13 +268,16 @@ async def give_filter(client, message):
                 try:
                     if fileid == "None":
                         if btn == "[]":
-                            # Filtre cevabı, KANAL'dan alınacak mesajın ID'si
-                            kanal_message = await client.get_messages(Config.KANAL, message_id=int(reply_text))
-                            sent_message = await message.reply(
-                                text=kanal_message.text,  # Mesajın içeriğini gönder
-                                reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
-                                disable_web_page_preview=True
-                            )
+                            # Filtre cevabı bir bağlantı ise, ID'yi çıkart
+                            match = re.search(r't\.me\/' + re.escape(Config.KANAL) + r'\/(\d+)', reply_text)
+                            if match:
+                                message_id = match.group(1)  # Mesaj ID'sini al
+                                kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
+                                sent_message = await message.reply(
+                                    text=kanal_message.text,  # Mesajın içeriğini gönder
+                                    reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
+                                    disable_web_page_preview=True
+                                )
                         else:
                             button = eval(btn)
                             sent_message = await message.reply_text(
