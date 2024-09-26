@@ -267,32 +267,19 @@ async def give_filter(client, message):
             if btn is not None:
                 try:
                     if fileid == "None":
-                        if btn == "[]":
-                            # Filtre cevabı bir bağlantı ise, ID'yi çıkart
-                            match = re.search(r't\.me\/' + re.escape(Config.KANAL) + r'\/(\d+)', reply_text)
-                            if match:
-                                message_id = match.group(1)  # Mesaj ID'sini al
-                                print(f"Mesaj ID'si: {message_id}")  # Debug: ID'yi yazdır
-                                kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
+                        # Burada reply_text sayının ID olduğunu varsayıyoruz
+                        message_id = int(reply_text)  # KANAL'daki mesaj ID'si
+                        kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
 
-                                # Mesajın alınıp alınmadığını kontrol et
-                                if kanal_message:
-                                    sent_message = await message.reply(
-                                        text=kanal_message.text,  # Mesajın içeriğini gönder
-                                        reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
-                                        disable_web_page_preview=True
-                                    )
-                                else:
-                                    print("Mesaj alınamadı.")  # Debug: Mesaj alınmadı
-                            else:
-                                print("Bağlantıdan ID çıkarılamadı.")  # Debug: ID çıkartılamadı
-                        else:
-                            button = eval(btn)
-                            sent_message = await message.reply_text(
-                                reply_text,
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(button)
+                        # Mesaj alınıp alınmadığını kontrol et
+                        if kanal_message:
+                            sent_message = await message.reply(
+                                text=kanal_message.text,  # Mesajın içeriğini gönder
+                                reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
+                                disable_web_page_preview=True
                             )
+                        else:
+                            print("Mesaj alınamadı.")  # Debug: Mesaj alınamadı
                     else:
                         if btn == "[]":
                             sent_message = await message.reply_cached_media(
