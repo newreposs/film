@@ -272,12 +272,20 @@ async def give_filter(client, message):
                             match = re.search(r't\.me\/' + re.escape(Config.KANAL) + r'\/(\d+)', reply_text)
                             if match:
                                 message_id = match.group(1)  # Mesaj ID'sini al
+                                print(f"Mesaj ID'si: {message_id}")  # Debug: ID'yi yazdır
                                 kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
-                                sent_message = await message.reply(
-                                    text=kanal_message.text,  # Mesajın içeriğini gönder
-                                    reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
-                                    disable_web_page_preview=True
-                                )
+
+                                # Mesajın alınıp alınmadığını kontrol et
+                                if kanal_message:
+                                    sent_message = await message.reply(
+                                        text=kanal_message.text,  # Mesajın içeriğini gönder
+                                        reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
+                                        disable_web_page_preview=True
+                                    )
+                                else:
+                                    print("Mesaj alınamadı.")  # Debug: Mesaj alınmadı
+                            else:
+                                print("Bağlantıdan ID çıkarılamadı.")  # Debug: ID çıkartılamadı
                         else:
                             button = eval(btn)
                             sent_message = await message.reply_text(
@@ -299,7 +307,7 @@ async def give_filter(client, message):
                                 reply_markup=InlineKeyboardMarkup(button)
                             )
                 except Exception as e:
-                    print(e)
+                    print(e)  # Hata mesajını yazdır
                     pass
                 break 
 
