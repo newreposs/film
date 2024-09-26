@@ -240,16 +240,12 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
    
-import asyncio  # asyncio modülünü eklemeyi unutmayın
-import re
-
 @Client.on_message((filters.private | filters.group) & filters.text)
-async def give_filter(client, message):
+async def give_filter(client,message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
         if fsub == 400:
             return
-            
     group_id = Config.BOT_USERNAME
     name = message.text
 
@@ -262,62 +258,40 @@ async def give_filter(client, message):
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
-            sent_message = None  # Gönderilen filtre yanıtı mesajını saklamak için
-
             if btn is not None:
                 try:
                     if fileid == "None":
-                        # Burada reply_text sayının ID olduğunu varsayıyoruz
-                        message_id = int(reply_text)  # KANAL'daki mesaj ID'si
-                        
-                        # Filtrenin cevabını gönder
-                        sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
-                        
-                        # KANAL'daki mesajı oluştur
-                        kanal_url = f'https://t.me/{Config.KANAL}/{message_id}'
-                        print(f"Kanal URL: {kanal_url}")  # Debug: Kanal URL'sini yazdır
-                        
-                        # Mesajı KANAL'dan al
-                        kanal_message = await client.get_messages(Config.KANAL, ids=message_id)
-
-                        # Mesajın alınıp alınmadığını kontrol et
-                        if kanal_message:
-                            # Eğer medya varsa, onu indir
-                            if kanal_message.media:
-                                media = await client.download_media(kanal_message)
-                                
-                                # Yanıt olarak medya gönder
-                                await message.reply_photo(
-                                    photo=media,
-                                    caption=kanal_message.caption or "",  # Mesajın içeriğini gönder
-                                    disable_web_page_preview=True
-                                )
-                            else:
-                                # Eğer medya yoksa sadece metin mesajını gönder
-                                await message.reply_text(
-                                    kanal_message.text,  # Mesajın içeriğini gönder
-                                    disable_web_page_preview=True
-                                )
+                        if btn == "[]":
+                            await message.reply_text(reply_text, disable_web_page_preview=True)
+                            await client.copy_message(
+                                chat_id=message.chat.id,
+                                from_chat_id=Config.KANAL,
+                                message_id=int(reply_text))
                         else:
-                            print("Mesaj alınamadı.")  # Debug: Mesaj alınamadı
+                            button = eval(btn)
+                            await message.reply_text(
+                                reply_text,
+                                disable_web_page_preview=True,
+                                reply_markup=InlineKeyboardMarkup(button)
+                            )
                     else:
                         if btn == "[]":
-                            sent_message = await message.reply_cached_media(
+                            await message.reply_cached_media(
                                 fileid,
                                 caption=reply_text or ""
                             )
                         else:
                             button = eval(btn) 
-                            sent_message = await message.reply_cached_media(
+                            await message.reply_cached_media(
                                 fileid,
                                 caption=reply_text or "",
                                 reply_markup=InlineKeyboardMarkup(button)
                             )
                 except Exception as e:
-                    print(f"Hata: {e}")  # Hata mesajını yazdır
+                    print(e)
                     pass
                 break 
-
+                
     if Config.SAVE_USER == "yes":
         try:
             await add_user(
@@ -326,20 +300,5 @@ async def give_filter(client, message):
                 str(message.from_user.first_name + " " + (message.from_user.last_name or "")),
                 str(message.from_user.dc_id)
             )
-        except Exception as e:
-            print(f"Kullanıcı ekleme hatası: {e}")
+        except:
             pass
-
-    # Uyarı mesajını gönder
-    warning_message = await message.reply_text("Bu mesaj 1 dakika sonra silinecektir.", disable_web_page_preview=True)
-
-    # 1 dakika bekle
-    await asyncio.sleep(60)
-
-    # Mesajı ve yanıtı sil
-    if sent_message:  # Eğer bir filtre yanıtı gönderilmişse
-        await sent_message.delete()  # Filtre yanıtı mesajını sil
-    await message.delete()  # Kullanıcının gönderdiği mesajı sil
-
-    # Uyarı mesajını sil
-    await warning_message.delete()
