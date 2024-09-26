@@ -240,7 +240,7 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
    
-import asyncio  # asyncio'yu içe aktar
+import asyncio
 import re
 
 @Client.on_message(filters.private | filters.group)
@@ -255,11 +255,16 @@ async def give_filter(client, message):
         fsub = await handle_force_subscribe(client, message)
         if fsub == 400:
             return
+
     group_id = Config.BOT_USERNAME
     name = message.text
 
     # Filtreleri al
     keywords = await get_filters(group_id)
+    
+    if not keywords:
+        print("Filtre bulunamadı!")  # Filtreler yoksa bilgi ver
+        return
 
     # Filtreleri ters sırayla ve uzunluğa göre sırala (daha uzun filtreler önce kontrol edilir)
     for keyword in reversed(sorted(keywords, key=len)):
