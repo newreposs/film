@@ -274,7 +274,7 @@ async def give_filter(client, message):
                                 from_chat_id=Config.KANAL,
                                 message_id=int(reply_text)
                             )
-                            media_message_id = media_message.message_id  # Medya mesajının ID'si
+                            media_message_id = media_message.id  # Medya mesajının ID'si
                         else:
                             button = eval(btn)
                             sent_message = await message.reply_text(
