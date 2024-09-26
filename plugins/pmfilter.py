@@ -240,6 +240,9 @@ async def delallconfirm(client, message):
     title = chat.first_name
     await del_all(client, message, group_id, title)
    
+import asyncio  # asyncio'yu içe aktar
+import re
+
 @Client.on_message((filters.private | filters.group) & filters.text)
 async def give_filter(client, message):
     if Config.AUTH_CHANNEL:
@@ -249,40 +252,29 @@ async def give_filter(client, message):
     group_id = Config.BOT_USERNAME
     name = message.text
 
-    # Filtreleri al
     keywords = await get_filters(group_id)
-
-    # Filtreleri ters sırayla ve uzunluğa göre sırala (daha uzun filtreler önce kontrol edilir)
     for keyword in reversed(sorted(keywords, key=len)):
         pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
-        
-        # Mesajın içinde bir filtre varsa
         if re.search(pattern, name, flags=re.IGNORECASE):
             reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
 
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
-            # Filtre yanıtını gönder
-            sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
-
-            # Uyarı mesajını 1 saniye sonra gönder
-            await asyncio.sleep(1)
+            # Uyarı mesajını gönder
             warning_message = await message.reply_text(
                 "Bu mesaj 1 dakika içinde silinecektir."
             )
 
             if btn is not None:
                 try:
-                    # Dosya id'si yoksa sadece mesajı yanıtla
                     if fileid == "None":
                         if btn == "[]":
                             await message.reply_text(reply_text, disable_web_page_preview=True)
                             await client.copy_message(
                                 chat_id=message.chat.id,
                                 from_chat_id=Config.KANAL,
-                                message_id=int(reply_text)
-                            )
+                                message_id=int(reply_text))
                         else:
                             button = eval(btn)
                             await message.reply_text(
@@ -307,17 +299,12 @@ async def give_filter(client, message):
                     print(e)
                     pass
 
-            # 1 dakika bekleyip, ana mesaj ve uyarı mesajını sil
-            await asyncio.sleep(60)
-            try:
-                await sent_message.delete()  # Filtre yanıtını sil
-                await message.delete()  # Orijinal mesajı sil
+                # Mesajı 1 dakika sonra sil
+                await asyncio.sleep(60)  # 1 dakika bekle
+                await message.delete()  # Kendi mesajını sil
                 await warning_message.delete()  # Uyarı mesajını sil
-            except Exception as e:
-                print(f"Mesajları silerken hata: {e}")
 
-            # Bir filtreye yanıt verildikten sonra döngüden çık
-            break 
+                break 
                 
     if Config.SAVE_USER == "yes":
         try:
