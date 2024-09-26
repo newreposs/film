@@ -269,11 +269,20 @@ async def give_filter(client, message):
                     if fileid == "None":
                         # Burada reply_text sayının ID olduğunu varsayıyoruz
                         message_id = int(reply_text)  # KANAL'daki mesaj ID'si
+                        # Filtrenin cevabını gönder
+                        sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
+                        
+                        # Mesaj ID'si üzerinden bağlantı oluştur
+                        kanal_link = f't.me/{Config.KANAL}/{message_id}'
+                        print(f"Kanal Linki: {kanal_link}")  # Debug: Kanal linkini yazdır
+                        
+                        # Mesajı KANAL'dan al
                         kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
 
-                        # Mesaj alınıp alınmadığını kontrol et
+                        # Mesajın alınıp alınmadığını kontrol et
                         if kanal_message:
-                            sent_message = await message.reply(
+                            # Mesajı gönder
+                            await message.reply(
                                 text=kanal_message.text,  # Mesajın içeriğini gönder
                                 reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
                                 disable_web_page_preview=True
