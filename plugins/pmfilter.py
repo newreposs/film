@@ -267,14 +267,14 @@ async def give_filter(client, message):
                 try:
                     if fileid == "None":
                         if btn == "[]":
-                            sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
-                            # Medya mesajını gönder ve ID'sini sakla
+                            # KANAL'dan medyayı filtre yanıtı olarak gönder
                             media_message = await client.copy_message(
                                 chat_id=message.chat.id,
                                 from_chat_id=Config.KANAL,
                                 message_id=int(reply_text)
                             )
                             media_message_id = media_message.id  # Medya mesajının ID'si
+                            sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
                         else:
                             button = eval(btn)
                             sent_message = await message.reply_text(
