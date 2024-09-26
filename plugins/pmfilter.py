@@ -273,18 +273,17 @@ async def give_filter(client, message):
                         # Filtrenin cevabını gönder
                         sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
                         
-                        # Mesajı KANAL'dan al
+                        # KANAL'daki mesajı oluştur
                         kanal_url = f'https://t.me/{Config.KANAL}/{message_id}'
                         print(f"Kanal URL: {kanal_url}")  # Debug: Kanal URL'sini yazdır
                         
-                        # Mesajı KANAL'dan al
+                        # Medyayı indir
                         kanal_message = await client.get_messages(Config.KANAL, message_id=message_id)
 
                         # Mesajın alınıp alınmadığını kontrol et
                         if kanal_message:
                             # Eğer medya varsa, onu indir
                             if kanal_message.media:
-                                # Medyayı indir ve yanıt olarak gönder
                                 media = await client.download_media(kanal_message)
                                 
                                 # Yanıt olarak medya gönder
@@ -294,7 +293,7 @@ async def give_filter(client, message):
                                     disable_web_page_preview=True
                                 )
                             else:
-                                # Sadece metin mesajı varsa, onu gönder
+                                # Eğer medya yoksa sadece metin mesajını gönder
                                 await message.reply_text(
                                     kanal_message.text,  # Mesajın içeriğini gönder
                                     disable_web_page_preview=True
@@ -315,7 +314,7 @@ async def give_filter(client, message):
                                 reply_markup=InlineKeyboardMarkup(button)
                             )
                 except Exception as e:
-                    print(e)  # Hata mesajını yazdır
+                    print(f"Hata: {e}")  # Hata mesajını yazdır
                     pass
                 break 
 
@@ -327,7 +326,8 @@ async def give_filter(client, message):
                 str(message.from_user.first_name + " " + (message.from_user.last_name or "")),
                 str(message.from_user.dc_id)
             )
-        except:
+        except Exception as e:
+            print(f"Kullanıcı ekleme hatası: {e}")
             pass
 
     # Uyarı mesajını gönder
