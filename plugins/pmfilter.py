@@ -266,14 +266,13 @@ async def give_filter(client, message):
                 try:
                     if fileid == "None":
                         if btn == "[]":
-                            # KANAL'dan medyayı reply.message olarak gönder
-                            media_message = await client.copy_message(
-                                chat_id=message.chat.id,
-                                from_chat_id=Config.KANAL,
-                                message_id=int(reply_text)
+                            # KANAL'dan gelen mesajı al ve yanıt olarak gönder
+                            kanal_message = await client.get_messages(Config.KANAL, ids=int(reply_text))
+                            sent_message = await message.reply(
+                                text=kanal_message.text,  # Mesajın içeriğini gönder
+                                reply_markup=kanal_message.reply_markup,  # Eğer buton varsa butonları da gönder
+                                disable_web_page_preview=True
                             )
-                            # Yanıt olarak reply_text'i gönder
-                            sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
                         else:
                             button = eval(btn)
                             sent_message = await message.reply_text(
