@@ -241,79 +241,65 @@ async def delallconfirm(client, message):
     await del_all(client, message, group_id, title)
    
 @Client.on_message((filters.private | filters.group) & filters.text)
-async def give_filter(client, message):
-    print(f"Mesaj alındı: {message.text} | Grup ID: {message.chat.id}")  # **Log ekledik**
+async def give_filter(client,message):
+if Config.AUTH_CHANNEL:
+fsub = await handle_force_subscribe(client, message)
+if fsub == 400:
+return
+group_id = Config.BOT_USERNAME
+name = message.text
 
-    if Config.AUTH_CHANNEL:
-        fsub = await handle_force_subscribe(client, message)
-        if fsub == 400:
-            return
+keywords = await get_filters(group_id)  
+for keyword in reversed(sorted(keywords, key=len)):  
+    pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"  
+    if re.search(pattern, name, flags=re.IGNORECASE):  
+        reply_text, btn, alert, fileid = await find_filter(group_id, keyword)  
 
-    group_id = str(message.chat.id)  # **Gruptan gelen mesajlar için chat ID al**
-    name = message.text
+        if reply_text:  
+            reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")  
 
-    keywords = await get_filters(group_id)
-    print(f"Filtreler: {keywords}")  # **Log: Filtreler doğru geliyor mu?**
-    
-    for keyword in reversed(sorted(keywords, key=len)):
-        pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
-        if re.search(pattern, name, flags=re.IGNORECASE):
-            reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+        if btn is not None:  
+            try:  
+                if fileid == "None":  
+                    if btn == "[]":  
+                        await message.reply_text(reply_text, disable_web_page_preview=True)  
+                        await client.copy_message(  
+                            chat_id=message.chat.id,  
+                            from_chat_id=Config.KANAL,  
+                            message_id=int(reply_text))  
+                    else:  
+                        button = eval(btn)  
+                        await message.reply_text(  
+                            reply_text,  
+                            disable_web_page_preview=True,  
+                            reply_markup=InlineKeyboardMarkup(button)  
+                        )  
+                else:  
+                    if btn == "[]":  
+                        await message.reply_cached_media(  
+                            fileid,  
+                            caption=reply_text or ""  
+                        )  
+                    else:  
+                        button = eval(btn)   
+                        await message.reply_cached_media(  
+                            fileid,  
+                            caption=reply_text or "",  
+                            reply_markup=InlineKeyboardMarkup(button)  
+                        )  
+            except Exception as e:  
+                print(e)  
+                pass  
+            break   
+              
+if Config.SAVE_USER == "yes":  
+    try:  
+        await add_user(  
+            str(message.from_user.id),  
+            str(message.from_user.username),  
+            str(message.from_user.first_name + " " + (message.from_user.last_name or "")),  
+            str(message.from_user.dc_id)  
+        )  
+    except:  
+        pass
 
-            if reply_text:
-                reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
-                reply_text += "\n\nBu mesaj 10 dakika sonra silecektir❕"
-
-            sent_message = None
-
-            if btn is not None:
-                try:
-                    if fileid == "None":
-                        if btn == "[]":
-                            sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
-                        else:
-                            button = eval(btn)
-                            sent_message = await message.reply_text(
-                                reply_text,
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(button)
-                            )
-                    else:
-                        if btn == "[]":
-                            sent_message = await message.reply_cached_media(
-                                fileid,
-                                caption=reply_text or ""
-                            )
-                        else:
-                            button = eval(btn)
-                            sent_message = await message.reply_cached_media(
-                                fileid,
-                                caption=reply_text or "",
-                                reply_markup=InlineKeyboardMarkup(button)
-                            )
-                    print(f"Yanıt gönderildi: {sent_message}")  # **Log: Yanıt başarıyla mı gidiyor?**
-                except Exception as e:
-                    print(f"Yanıt gönderme hatası: {e}")
-                    return
-
-                # **10 dakika sonra mesajları silme**
-                if sent_message:
-                    await asyncio.sleep(600)
-                    try:
-                        await message.delete()
-                        await sent_message.delete()
-                    except Exception as e:
-                        print(f"Mesaj silme hatası: {e}")
-                
-                break
-
-    if Config.SAVE_USER == "yes":
-        try:
-            await add_user(
-                str(message.from_user.id),
-                str(message.from_user.username),
-                str(message.from_user.first_name + " " + (message.from_user.last_name or "")),
-                str(message.from_user.dc_id)
-            )
-        except Exception as e:
-            print(f"Kullanıcı kaydetme hatası: {e}")
