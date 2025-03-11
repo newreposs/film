@@ -242,15 +242,19 @@ async def delallconfirm(client, message):
    
 @Client.on_message((filters.private | filters.group) & filters.text)
 async def give_filter(client, message):
+    print(f"Mesaj alındı: {message.text} | Grup ID: {message.chat.id}")  # **Log ekledik**
+
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
         if fsub == 400:
             return
 
-    group_id = str(message.chat.id)  # **Grup veya özel sohbet ID'sini al**
+    group_id = str(message.chat.id)  # **Gruptan gelen mesajlar için chat ID al**
     name = message.text
 
-    keywords = await get_filters(group_id)  # **Gruptaki filtreleri al**
+    keywords = await get_filters(group_id)
+    print(f"Filtreler: {keywords}")  # **Log: Filtreler doğru geliyor mu?**
+    
     for keyword in reversed(sorted(keywords, key=len)):
         pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
         if re.search(pattern, name, flags=re.IGNORECASE):
@@ -258,9 +262,9 @@ async def give_filter(client, message):
 
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
-                reply_text += "\n\nBu mesaj 10 dakika sonra silecektir❕"  # **Ekstra mesaj ekleme**
+                reply_text += "\n\nBu mesaj 10 dakika sonra silecektir❕"
 
-            sent_message = None  # Yanıt mesajının ID'sini saklamak için
+            sent_message = None
 
             if btn is not None:
                 try:
@@ -287,16 +291,17 @@ async def give_filter(client, message):
                                 caption=reply_text or "",
                                 reply_markup=InlineKeyboardMarkup(button)
                             )
+                    print(f"Yanıt gönderildi: {sent_message}")  # **Log: Yanıt başarıyla mı gidiyor?**
                 except Exception as e:
                     print(f"Yanıt gönderme hatası: {e}")
                     return
 
                 # **10 dakika sonra mesajları silme**
                 if sent_message:
-                    await asyncio.sleep(60)  # **600 saniye = 10 dakika**
+                    await asyncio.sleep(600)
                     try:
-                        await message.delete()  # Kullanıcının mesajını sil
-                        await sent_message.delete()  # Botun yanıtını sil
+                        await message.delete()
+                        await sent_message.delete()
                     except Exception as e:
                         print(f"Mesaj silme hatası: {e}")
                 
