@@ -2,7 +2,6 @@ import os
 import re
 import io
 import pyrogram
-import asyncio
 import logging
 from functions.forcesub import handle_force_subscribe
 
@@ -53,24 +52,8 @@ import time
 from aiohttp import web
 from aiohttp.http_exceptions import BadStatusLine
 
-routes = web.RouteTableDef()
 
-@routes.get("/", allow_head=True)
-async def root_route_handler(_):
-    return web.json_response(
-        {
-            "server_status": "running",
-            "telegram_bot": "@" + Config.BOT_USERNAME,
-            "loads": dict(
-                ("bot" + str(c + 1), l)
-                for c, (_, l) in enumerate(
-                    sorted(work_loads.items(), key=lambda x: x[1], reverse=True)
-                )
-            )
-        }
-    )
-
-@Client.on_message(filters.command('log'))
+@Client.on_message(filters.command('log') & filters.user(Config.OWNERS))
 async def log_handler(client, message):
     with open('log.txt', 'rb') as f:
         try:
@@ -80,7 +63,7 @@ async def log_handler(client, message):
         except Exception as e:
             await message.reply_text(str(e))
 
-@Client.on_message(filters.command('kimler'))
+@Client.on_message(filters.command('users') & filters.user(Config.OWNERS))
 async def list_users(bot, message):
     # https://t.me/GetTGLink/4184
     total_users = await db.total_users_count()
@@ -97,7 +80,7 @@ async def list_users(bot, message):
     except Exception as e:
         raju.edit_text(e)
 
-@Client.on_message(filters.command('ekle') & filters.user(Config.OWNERS))
+@Client.on_message(filters.command('add') & filters.user(Config.OWNERS))
 async def addfilter(client, message):
       
     userid = message.from_user.id
@@ -170,7 +153,7 @@ async def addfilter(client, message):
     )
 
 
-@Client.on_message(filters.command('tum') & filters.user(Config.OWNERS))
+@Client.on_message(filters.command('viewfilters') & filters.user(Config.OWNERS))
 async def get_all(client, message):
     
     chat_type = message.chat.type
@@ -206,7 +189,7 @@ async def get_all(client, message):
         parse_mode=ParseMode.MARKDOWN
     )
         
-@Client.on_message(filters.command('sil') & filters.user(Config.OWNERS))
+@Client.on_message(filters.command('del') & filters.user(Config.OWNERS))
 async def deletefilter(client, message):
     userid = message.from_user.id
     chat_type = message.chat.type
@@ -220,8 +203,8 @@ async def deletefilter(client, message):
     except:
         await message.reply_text(
             "<i>Silmek istediğiniz filtre adını belirtin!</i>\n\n"
-            "<code>/sil filterismi</code>\n\n"
-            "Tüm filterları görmek için /tüm ü kulan!",
+            "<code>/del filterismi</code>\n\n"
+            "Tüm filterları görmek için /viewfilters ı kulan!",
             quote=True
         )
         return
@@ -231,7 +214,7 @@ async def deletefilter(client, message):
     await delete_filter(message, query, grp_id)
         
 
-@Client.on_message(filters.command('hepsinisil') & filters.user(Config.OWNERS))
+@Client.on_message(filters.command('delall') & filters.user(Config.OWNERS))
 async def delallconfirm(client, message):
     userid = message.from_user.id
     chat_type = message.chat.type
@@ -239,8 +222,8 @@ async def delallconfirm(client, message):
     chat = await client.get_users(group_id)
     title = chat.first_name
     await del_all(client, message, group_id, title)
-   
-Client.on_message((filters.private | filters.group) & filters.text)
+
+@Client.on_message(filters.private & filters.text)
 async def give_filter(client,message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
