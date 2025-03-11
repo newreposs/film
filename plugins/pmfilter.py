@@ -241,11 +241,12 @@ async def delallconfirm(client, message):
     await del_all(client, message, group_id, title)
    
 @Client.on_message((filters.private | filters.group) & filters.text)
-async def give_filter(client,message):
+async def give_filter(client, message):
     if Config.AUTH_CHANNEL:
         fsub = await handle_force_subscribe(client, message)
         if fsub == 400:
             return
+
     group_id = Config.BOT_USERNAME
     name = message.text
 
@@ -258,31 +259,33 @@ async def give_filter(client,message):
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
+            sent_message = None  # Yanıt mesajının ID'sini saklamak için
+
             if btn is not None:
                 try:
                     if fileid == "None":
                         if btn == "[]":
-                            await message.reply_text(reply_text, disable_web_page_preview=True)
+                            sent_message = await message.reply_text(reply_text, disable_web_page_preview=True)
                             await client.copy_message(
                                 chat_id=message.chat.id,
                                 from_chat_id=Config.KANAL,
                                 message_id=int(reply_text))
                         else:
                             button = eval(btn)
-                            await message.reply_text(
+                            sent_message = await message.reply_text(
                                 reply_text,
                                 disable_web_page_preview=True,
                                 reply_markup=InlineKeyboardMarkup(button)
                             )
                     else:
                         if btn == "[]":
-                            await message.reply_cached_media(
+                            sent_message = await message.reply_cached_media(
                                 fileid,
                                 caption=reply_text or ""
                             )
                         else:
-                            button = eval(btn) 
-                            await message.reply_cached_media(
+                            button = eval(btn)
+                            sent_message = await message.reply_cached_media(
                                 fileid,
                                 caption=reply_text or "",
                                 reply_markup=InlineKeyboardMarkup(button)
@@ -290,8 +293,18 @@ async def give_filter(client,message):
                 except Exception as e:
                     print(e)
                     pass
-                break 
+
+                # **1 dakika sonra mesajları silme**
+                if sent_message:
+                    await asyncio.sleep(60)
+                    try:
+                        await message.delete()  # Kullanıcının gönderdiği mesajı sil
+                        await sent_message.delete()  # Botun gönderdiği yanıtı sil
+                    except Exception as e:
+                        print(f"Mesaj silme hatası: {e}")
                 
+                break
+
     if Config.SAVE_USER == "yes":
         try:
             await add_user(
