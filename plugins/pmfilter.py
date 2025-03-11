@@ -258,6 +258,7 @@ async def give_filter(client, message):
 
             if reply_text:
                 reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
+                reply_text += "\n\nBu mesaj 10 dakika sonra silecektir❕"  # **Sonuna mesaj ekledik.**
 
             sent_message = None  # Yanıt mesajının ID'sini saklamak için
 
@@ -294,9 +295,9 @@ async def give_filter(client, message):
                     print(e)
                     pass
 
-                # **1 dakika sonra mesajları silme**
+                # **10 dakika sonra mesajları silme**
                 if sent_message:
-                    await asyncio.sleep(60)
+                    await asyncio.sleep(600)  # **600 saniye = 10 dakika**
                     try:
                         await message.delete()  # Kullanıcının gönderdiği mesajı sil
                         await sent_message.delete()  # Botun gönderdiği yanıtı sil
